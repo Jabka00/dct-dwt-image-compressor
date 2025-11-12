@@ -45,9 +45,9 @@ class ImageCompressor:
     
     def compress_dct(self, image, quality_factor=50):
        
-        h, w = image.shape
-        h_pad = (8 - h % 8) % 8
-        w_pad = (8 - w % 8) % 8
+        h_orig, w_orig = image.shape
+        h_pad = (8 - h_orig % 8) % 8
+        w_pad = (8 - w_orig % 8) % 8
         
         if h_pad > 0 or w_pad > 0:
             image = np.pad(image, ((0, h_pad), (0, w_pad)), mode='edge')
@@ -88,7 +88,7 @@ class ImageCompressor:
                 
                 compressed[i:i+8, j:j+8] = self.idct2(dequantized)
         
-        compressed = compressed[:h-h_pad, :w-w_pad]
+        compressed = compressed[:h_orig, :w_orig]
         
         compressed = np.clip(compressed, 0, 255)
         
