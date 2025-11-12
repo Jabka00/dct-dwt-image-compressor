@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-from scipy.fftpack import dct, idct
 import pywt
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -15,6 +14,19 @@ class ImageCompressor:
         self.original_image = None
         self.compressed_dct = None
         self.compressed_dwt = None
+        self.dct_matrix = self._create_dct_matrix(8)
+        self.dct_matrix_t = self.dct_matrix.T
+        
+    @staticmethod
+    def _create_dct_matrix(n):
+        dct_matrix = np.zeros((n, n))
+        for i in range(n):
+            for j in range(n):
+                if i == 0:
+                    dct_matrix[i, j] = np.sqrt(1.0 / n)
+                else:
+                    dct_matrix[i, j] = np.sqrt(2.0 / n) * np.cos((np.pi * i * (2 * j + 1)) / (2.0 * n))
+        return dct_matrix
         
     @staticmethod
     def psnr(original, compressed):
@@ -25,13 +37,11 @@ class ImageCompressor:
         psnr_value = 20 * np.log10(max_pixel / np.sqrt(mse))
         return psnr_value
     
-    @staticmethod
-    def dct2(block):
-        return dct(dct(block.T, norm='ortho').T, norm='ortho')
+    def dct2(self, block):
+        return self.dct_matrix @ block @ self.dct_matrix_t
     
-    @staticmethod
-    def idct2(block):
-        return idct(idct(block.T, norm='ortho').T, norm='ortho')
+    def idct2(self, block):
+        return self.dct_matrix_t @ block @ self.dct_matrix
     
     def compress_dct(self, image, quality_factor=50):
        
